@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive
 
 @Autonomous(name = "TestAuto")
+@Suppress("unused")
 class TestAuto : OpMode() {
     private val drive = SampleMecanumDrive(hardwareMap)
 
