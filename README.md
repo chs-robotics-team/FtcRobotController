@@ -5,8 +5,7 @@
 1. Open your `~/.zshrc` file and add the following to add the Android Developer Tools to your path:
 
 ```sh
-PATH=~/Library/Android/sdk/tools:$PATH
-PATH=~/Library/Android/sdk/platform-tools:$PATH
+PATH="~/Library/Android/sdk/tools:~/Library/Android/sdk/platform-tools:$PATH"
 ```
 
 2. Connect to the robot internet network (`22449-RC`)
