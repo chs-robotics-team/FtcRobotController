@@ -17,7 +17,7 @@ class TestAuto : OpMode() {
     override fun start() {
         telemetry.addData("[BOT]", "Driving forward...")
 
-        // Test drive forward 10"
+        // Test drive forward 10" using roadrunner
         drive.trajectoryBuilder(Pose2d())
             .forward(10.0)
             .build()
