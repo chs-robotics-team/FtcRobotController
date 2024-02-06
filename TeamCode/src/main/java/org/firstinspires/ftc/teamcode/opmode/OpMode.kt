@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode
 import com.arcrobotics.ftclib.drivebase.MecanumDrive
 import com.arcrobotics.ftclib.gamepad.GamepadEx
 import com.arcrobotics.ftclib.gamepad.GamepadKeys
+import com.arcrobotics.ftclib.gamepad.ToggleButtonReader
 import com.arcrobotics.ftclib.hardware.SimpleServo
 import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -25,6 +26,7 @@ class OpMode : OpMode() {
     private lateinit var clawServo: SimpleServo
     private lateinit var driveTrain: MecanumDrive
     private lateinit var gamepad: GamepadEx
+    private lateinit var clawOpen: ToggleButtonReader
 
     override fun init() {
         leftSlideMotor = Motor(hardwareMap, "lSlide")
@@ -40,6 +42,7 @@ class OpMode : OpMode() {
         )
 
         gamepad = GamepadEx(gamepad1)
+        clawOpen = ToggleButtonReader(gamepad, GamepadKeys.Button.A)
 
         telemetry.addData("[BOT]", "Initialized Motors")
     }
@@ -70,11 +73,7 @@ class OpMode : OpMode() {
             else -> 0.0
         } else 0.0
 
-        val clawPosition = when {
-            gamepad.isDown(GamepadKeys.Button.A) -> CLAW_CLOSE_POSITION
-            gamepad.isDown(GamepadKeys.Button.B) -> CLAW_OPEN_POSITION
-            else -> clawServo.position
-        }
+        val clawPosition = if (clawOpen.state) CLAW_OPEN_POSITION else CLAW_CLOSE_POSITION
 
         leftSlideMotor.set(slidePower)
         rightSlideMotor.set(slidePower)
