@@ -9,8 +9,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 
 private const val ARM_SPEED = 0.5
+private const val MAX_ARM_POSITION = 180.0
 private const val DRIVE_SPEED = 0.4
 private const val SLIDE_SPEED = 0.075
+private const val MAX_SLIDE_POSITION = 180.0
 private const val CLAW_OPEN_POSITION = 0.0
 private const val CLAW_CLOSE_POSITION = 180.0
 
@@ -19,7 +21,7 @@ private const val CLAW_CLOSE_POSITION = 180.0
 class OpMode : OpMode() {
     private lateinit var leftSlideMotor: Motor
     private lateinit var rightSlideMotor: Motor
-    private lateinit var clawMotor: Motor
+    private lateinit var clawArm: Motor
     private lateinit var clawServo: SimpleServo
     private lateinit var driveTrain: MecanumDrive
     private lateinit var gamepad: GamepadEx
@@ -27,7 +29,7 @@ class OpMode : OpMode() {
     override fun init() {
         leftSlideMotor = Motor(hardwareMap, "lSlide")
         rightSlideMotor = Motor(hardwareMap, "rSlide")
-        clawMotor = Motor(hardwareMap, "clawMotor")
+        clawArm = Motor(hardwareMap, "clawMotor")
         clawServo = SimpleServo(hardwareMap, "clawServo", CLAW_OPEN_POSITION, CLAW_CLOSE_POSITION)
 
         driveTrain = MecanumDrive(
@@ -54,17 +56,19 @@ class OpMode : OpMode() {
             false
         )
 
-        val slidePower = when {
+        val avgSlidePos = (leftSlideMotor.currentPosition + rightSlideMotor.currentPosition) / 2.0
+
+        val slidePower = if (avgSlidePos < MAX_SLIDE_POSITION) when {
             gamepad.isDown(GamepadKeys.Button.DPAD_UP) -> SLIDE_SPEED
             gamepad.isDown(GamepadKeys.Button.DPAD_DOWN) -> -SLIDE_SPEED
             else -> 0.0
-        }
+        } else 0.0
 
-        val armPower = when {
+        val armPower = if (clawArm.currentPosition < MAX_ARM_POSITION) when {
             gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER) -> ARM_SPEED
             gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.4 -> -ARM_SPEED
             else -> 0.0
-        }
+        } else 0.0
 
         val clawPosition = when {
             gamepad.isDown(GamepadKeys.Button.A) -> CLAW_CLOSE_POSITION
@@ -74,7 +78,7 @@ class OpMode : OpMode() {
 
         leftSlideMotor.set(slidePower)
         rightSlideMotor.set(slidePower)
-        clawMotor.set(armPower)
+        clawArm.set(armPower)
         clawServo.position = clawPosition
     }
 }
