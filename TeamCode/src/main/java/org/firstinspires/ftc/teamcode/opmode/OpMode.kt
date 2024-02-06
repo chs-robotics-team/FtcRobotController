@@ -57,7 +57,21 @@ class OpMode : OpMode() {
             else -> 0.0
         }
 
+        val armPower = when {
+            gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER) -> 0.5
+            gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.4 -> -0.5
+            else -> 0.0
+        }
+
+        val clawPosition = when {
+            gamepad.isDown(GamepadKeys.Button.A) -> 0.0
+            gamepad.isDown(GamepadKeys.Button.B) -> 180.0
+            else -> clawServo.position
+        }
+
         leftSlideMotor.set(slidePower)
         rightSlideMotor.set(slidePower)
+        clawMotor.set(armPower)
+        clawServo.position = clawPosition
     }
 }
