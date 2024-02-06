@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import kotlin.math.abs
 
 private const val DRIVE_SPEED = 0.4
+private const val SLIDE_SPEED = 0.075
 
 @TeleOp(name = "OpMode")
 @Suppress("unused")
@@ -42,6 +43,7 @@ class OpMode : OpMode() {
         val leftY = -gamepad1.left_stick_y.toDouble()
         val leftX = gamepad1.left_stick_x.toDouble()
         val rightX = gamepad1.right_stick_x.toDouble()
+        val (dpadUp, dpadDown) = gamepad1.dpad_up to gamepad1.dpad_down
 
         // Largest motor power; ensures all powers maintain same ratio when one is outside of [-1, 1]
         val denominator = (abs(leftY) + abs(leftX) + abs(rightX)).coerceAtLeast(1.0)
@@ -55,5 +57,14 @@ class OpMode : OpMode() {
         frontRightMotor.power = frontRightPower
         backLeftMotor.power = backLeftPower
         backRightMotor.power = backRightPower
+
+        val slidePower = when {
+            dpadUp -> SLIDE_SPEED
+            dpadDown -> -SLIDE_SPEED
+            else -> 0.0
+        }
+
+        leftSlideMotor.power = slidePower
+        rightSlideMotor.power = slidePower
     }
 }
