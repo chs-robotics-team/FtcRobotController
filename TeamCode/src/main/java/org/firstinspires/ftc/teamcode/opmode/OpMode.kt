@@ -8,8 +8,11 @@ import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 
+private const val ARM_SPEED = 0.5
 private const val DRIVE_SPEED = 0.4
 private const val SLIDE_SPEED = 0.075
+private const val CLAW_OPEN_POSITION = 0.0
+private const val CLAW_CLOSE_POSITION = 180.0
 
 @TeleOp(name = "OpMode")
 @Suppress("unused")
@@ -25,7 +28,7 @@ class OpMode : OpMode() {
         leftSlideMotor = Motor(hardwareMap, "lSlide")
         rightSlideMotor = Motor(hardwareMap, "rSlide")
         clawMotor = Motor(hardwareMap, "clawMotor")
-        clawServo = SimpleServo(hardwareMap, "clawServo", 0.0, 180.0)
+        clawServo = SimpleServo(hardwareMap, "clawServo", CLAW_OPEN_POSITION, CLAW_CLOSE_POSITION)
 
         driveTrain = MecanumDrive(
             Motor(hardwareMap, "flMotor"),
@@ -58,14 +61,14 @@ class OpMode : OpMode() {
         }
 
         val armPower = when {
-            gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER) -> 0.5
-            gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.4 -> -0.5
+            gamepad.isDown(GamepadKeys.Button.LEFT_BUMPER) -> ARM_SPEED
+            gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.4 -> -ARM_SPEED
             else -> 0.0
         }
 
         val clawPosition = when {
-            gamepad.isDown(GamepadKeys.Button.A) -> 0.0
-            gamepad.isDown(GamepadKeys.Button.B) -> 180.0
+            gamepad.isDown(GamepadKeys.Button.A) -> CLAW_CLOSE_POSITION
+            gamepad.isDown(GamepadKeys.Button.B) -> CLAW_OPEN_POSITION
             else -> clawServo.position
         }
 
