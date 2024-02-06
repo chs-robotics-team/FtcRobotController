@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.opmode
 
+import com.arcrobotics.ftclib.drivebase.MecanumDrive
+import com.arcrobotics.ftclib.gamepad.GamepadEx
+import com.arcrobotics.ftclib.gamepad.GamepadKeys
+import com.arcrobotics.ftclib.hardware.SimpleServo
+import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.Servo
-import kotlin.math.abs
 
 private const val DRIVE_SPEED = 0.4
 private const val SLIDE_SPEED = 0.075
@@ -12,24 +14,27 @@ private const val SLIDE_SPEED = 0.075
 @TeleOp(name = "OpMode")
 @Suppress("unused")
 class OpMode : OpMode() {
-    private lateinit var frontLeftMotor: DcMotor
-    private lateinit var frontRightMotor: DcMotor
-    private lateinit var backLeftMotor: DcMotor
-    private lateinit var backRightMotor: DcMotor
-    private lateinit var leftSlideMotor: DcMotor
-    private lateinit var rightSlideMotor: DcMotor
-    private lateinit var clawMotor: DcMotor
-    private lateinit var clawServo: Servo
+    private lateinit var leftSlideMotor: Motor
+    private lateinit var rightSlideMotor: Motor
+    private lateinit var clawMotor: Motor
+    private lateinit var clawServo: SimpleServo
+    private lateinit var driveTrain: MecanumDrive
+    private lateinit var gamepad: GamepadEx
 
     override fun init() {
-        frontLeftMotor = hardwareMap.dcMotor.get("flMotor")
-        frontRightMotor = hardwareMap.dcMotor.get("frMotor")
-        backLeftMotor = hardwareMap.dcMotor.get("blMotor")
-        backRightMotor = hardwareMap.dcMotor.get("brMotor")
-        leftSlideMotor = hardwareMap.dcMotor.get("lSlide")
-        rightSlideMotor = hardwareMap.dcMotor.get("rSlide")
-        clawMotor = hardwareMap.dcMotor.get("clawArm")
-        clawServo = hardwareMap.servo.get("claw")
+        leftSlideMotor = Motor(hardwareMap, "lSlide")
+        rightSlideMotor = Motor(hardwareMap, "rSlide")
+        clawMotor = Motor(hardwareMap, "clawMotor")
+        clawServo = SimpleServo(hardwareMap, "clawServo", 0.0, 180.0)
+
+        driveTrain = MecanumDrive(
+            Motor(hardwareMap, "flMotor"),
+            Motor(hardwareMap, "frMotor"),
+            Motor(hardwareMap, "blMotor"),
+            Motor(hardwareMap, "brMotor")
+        )
+
+        gamepad = GamepadEx(gamepad1)
 
         telemetry.addData("[BOT]", "Initialized Motors")
     }
@@ -39,32 +44,20 @@ class OpMode : OpMode() {
     }
 
     override fun loop() {
-        // https://gm0.org/en/latest/docs/software/tutorials/mecanum-drive.html
-        val leftY = -gamepad1.left_stick_y.toDouble()
-        val leftX = gamepad1.left_stick_x.toDouble()
-        val rightX = gamepad1.right_stick_x.toDouble()
-        val (dpadUp, dpadDown) = gamepad1.dpad_up to gamepad1.dpad_down
-
-        // Largest motor power; ensures all powers maintain same ratio when one is outside of [-1, 1]
-        val denominator = (abs(leftY) + abs(leftX) + abs(rightX)).coerceAtLeast(1.0)
-
-        val frontLeftPower = (leftY + leftX + rightX) / denominator * DRIVE_SPEED
-        val frontRightPower = (leftY - leftX - rightX) / denominator * DRIVE_SPEED
-        val backLeftPower = (leftY - leftX + rightX) / denominator * DRIVE_SPEED
-        val backRightPower = (leftY + leftX - rightX) / denominator * DRIVE_SPEED
-
-        frontLeftMotor.power = frontLeftPower
-        frontRightMotor.power = frontRightPower
-        backLeftMotor.power = backLeftPower
-        backRightMotor.power = backRightPower
+        driveTrain.driveRobotCentric(
+            gamepad.leftX * DRIVE_SPEED,
+            gamepad.leftY * DRIVE_SPEED,
+            gamepad.rightX * DRIVE_SPEED,
+            false
+        )
 
         val slidePower = when {
-            dpadUp -> SLIDE_SPEED
-            dpadDown -> -SLIDE_SPEED
+            gamepad.isDown(GamepadKeys.Button.DPAD_UP) -> SLIDE_SPEED
+            gamepad.isDown(GamepadKeys.Button.DPAD_DOWN) -> -SLIDE_SPEED
             else -> 0.0
         }
 
-        leftSlideMotor.power = slidePower
-        rightSlideMotor.power = slidePower
+        leftSlideMotor.set(slidePower)
+        rightSlideMotor.set(slidePower)
     }
 }
