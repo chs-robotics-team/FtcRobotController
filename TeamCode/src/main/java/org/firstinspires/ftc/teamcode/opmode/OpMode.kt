@@ -11,24 +11,24 @@ private const val DRIVE_SPEED = 0.4
 @TeleOp(name = "OpMode")
 @Suppress("unused")
 class OpMode : OpMode() {
-    private lateinit var frontLeft: DcMotor
-    private lateinit var frontRight: DcMotor
-    private lateinit var backLeft: DcMotor
-    private lateinit var backRight: DcMotor
-    private lateinit var leftSlide: DcMotor
-    private lateinit var rightSlide: DcMotor
-    private lateinit var clawArm: DcMotor
-    private lateinit var claw: Servo
+    private lateinit var frontLeftMotor: DcMotor
+    private lateinit var frontRightMotor: DcMotor
+    private lateinit var backLeftMotor: DcMotor
+    private lateinit var backRightMotor: DcMotor
+    private lateinit var leftSlideMotor: DcMotor
+    private lateinit var rightSlideMotor: DcMotor
+    private lateinit var clawMotor: DcMotor
+    private lateinit var clawServo: Servo
 
     override fun init() {
-        frontLeft = hardwareMap.dcMotor.get("flMotor")
-        frontRight = hardwareMap.dcMotor.get("frMotor")
-        backLeft = hardwareMap.dcMotor.get("blMotor")
-        backRight = hardwareMap.dcMotor.get("brMotor")
-        leftSlide = hardwareMap.dcMotor.get("lSlide")
-        rightSlide = hardwareMap.dcMotor.get("rSlide")
-        clawArm = hardwareMap.dcMotor.get("clawArm")
-        claw = hardwareMap.servo.get("claw")
+        frontLeftMotor = hardwareMap.dcMotor.get("flMotor")
+        frontRightMotor = hardwareMap.dcMotor.get("frMotor")
+        backLeftMotor = hardwareMap.dcMotor.get("blMotor")
+        backRightMotor = hardwareMap.dcMotor.get("brMotor")
+        leftSlideMotor = hardwareMap.dcMotor.get("lSlide")
+        rightSlideMotor = hardwareMap.dcMotor.get("rSlide")
+        clawMotor = hardwareMap.dcMotor.get("clawArm")
+        clawServo = hardwareMap.servo.get("claw")
 
         telemetry.addData("[BOT]", "Initialized Motors")
     }
@@ -38,19 +38,22 @@ class OpMode : OpMode() {
     }
 
     override fun loop() {
+        // https://gm0.org/en/latest/docs/software/tutorials/mecanum-drive.html
         val leftY = -gamepad1.left_stick_y.toDouble()
         val leftX = gamepad1.left_stick_x.toDouble()
         val rightX = gamepad1.right_stick_x.toDouble()
 
-        val denominator = listOf(abs(leftY), abs(leftX), abs(rightX), abs(rightX)).maxOrNull() ?: 1.0
+        // Largest motor power; ensures all powers maintain same ratio when one is outside of [-1, 1]
+        val denominator = (abs(leftY) + abs(leftX) + abs(rightX)).coerceAtLeast(1.0)
+
         val frontLeftPower = (leftY + leftX + rightX) / denominator * DRIVE_SPEED
         val frontRightPower = (leftY - leftX - rightX) / denominator * DRIVE_SPEED
         val backLeftPower = (leftY - leftX + rightX) / denominator * DRIVE_SPEED
         val backRightPower = (leftY + leftX - rightX) / denominator * DRIVE_SPEED
 
-        frontLeft.power = frontLeftPower
-        frontRight.power = frontRightPower
-        backLeft.power = backLeftPower
-        backRight.power = backRightPower
+        frontLeftMotor.power = frontLeftPower
+        frontRightMotor.power = frontRightPower
+        backLeftMotor.power = backLeftPower
+        backRightMotor.power = backRightPower
     }
 }
