@@ -33,13 +33,12 @@ class OpMode : OpMode() {
         telemetry.addData("Encoder", hardware.armMotor.encoder.position)
 
         hardware.mecanumDrive.driveRobotCentric(
-            gamepad.leftX * Constants.DriveTrain.DRIVE_SPEED,
-            gamepad.leftY * Constants.DriveTrain.DRIVE_SPEED,
+            -gamepad.leftX * Constants.DriveTrain.DRIVE_SPEED,
+            -gamepad.leftY * Constants.DriveTrain.DRIVE_SPEED,
             -gamepad.rightX * Constants.DriveTrain.DRIVE_SPEED,
         )
 
-        hardware.clawArm.move()
-//        hardware.slide.move()
+        hardware.clawArm.move(telemetry)
         gamepad.readButtons()
     }
 }
