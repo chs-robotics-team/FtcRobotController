@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 
 object Constants {
     object Arm {
+        // Speed that the arm adjusts position at when trigger/bumper is pressed
         const val SPEED = 0.4
         const val UP_POS = 90
 
@@ -66,6 +67,8 @@ object Constants {
 //}
 
 class ClawArm(val hardware: RobotHardware) {
+    private var currentAngle = 0.0
+
     init {
         hardware.armMotor.setRunMode(Motor.RunMode.PositionControl)
         hardware.armMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
@@ -79,19 +82,21 @@ class ClawArm(val hardware: RobotHardware) {
             GamepadKeys.Trigger.LEFT_TRIGGER
         )
 
-        val armPower = if (hardware.armMotor.currentPosition < Constants.Arm.MAX_POSITION) when {
+        val angleModifier = when {
             leftBumper -> Constants.Arm.SPEED
-            leftTrigger > 0.4 -> -Constants.Arm.SPEED
+            leftTrigger > 0.5 -> -Constants.Arm.SPEED
             else -> 0.0
-        } else 0.0
+        }
 
-        // wrist position based on encoder of arm (if arm is up, wrist is up)
+        currentAngle = (currentAngle + angleModifier).coerceIn(0.0, Constants.Arm.MAX_POSITION)
+
+        // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
         val wristPosition = when {
             hardware.armMotor.currentPosition < Constants.Arm.UP_POS -> Constants.Claw.WRIST_DOWN_POS
             else -> Constants.Claw.WRIST_UP_POS
         }
 
-        hardware.armMotor.set(armPower)
+        hardware.armMotor.set(currentAngle)
         hardware.wristServo.position = wristPosition
     }
 }
