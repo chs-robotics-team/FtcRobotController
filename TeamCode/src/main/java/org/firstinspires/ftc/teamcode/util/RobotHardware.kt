@@ -8,7 +8,6 @@ import com.arcrobotics.ftclib.hardware.SimpleServo
 import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import kotlin.math.abs
 
 object Constants {
     object Arm {
@@ -70,6 +69,8 @@ object Constants {
 //}
 
 class ClawArm(val hardware: RobotHardware) {
+    private val initialEncoderVal = hardware.armMotor.encoder.position
+
     init {
         hardware.armMotor.setRunMode(Motor.RunMode.PositionControl)
         hardware.armMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
@@ -79,7 +80,6 @@ class ClawArm(val hardware: RobotHardware) {
     }
 
     fun move(telemetry: Telemetry) {
-//        hardware.gamepad.readButtons()
         val angleModifier = when {
             hardware.gamepad.getButton(GamepadKeys.Button.LEFT_BUMPER) -> Constants.Arm.TICK_INCREMENT
             hardware.gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5 -> -Constants.Arm.TICK_INCREMENT
@@ -88,7 +88,9 @@ class ClawArm(val hardware: RobotHardware) {
         }
 
         val encoderVal = hardware.armMotor.encoder.position
-        val angle = encoderVal + angleModifier
+        // coerceAtLeast keeps minimum at MAX_POSITION; stops arm from going too far back
+        val targetPosition = (encoderVal + angleModifier).coerceAtLeast(Constants.Arm.MAX_POSITION)
+        val withInitial = initialEncoderVal + angleModifier
 
         // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
         val wristPosition = when {
@@ -97,41 +99,42 @@ class ClawArm(val hardware: RobotHardware) {
         }
 
         telemetry.addData("Encoder Val", encoderVal)
-        telemetry.addData("New Angle", angle)
+        telemetry.addData("New Angle", targetPosition)
+        telemetry.addData("With Initial", withInitial)
 
-        hardware.armMotor.setTargetPosition(angle)
+        hardware.armMotor.setTargetPosition(targetPosition)
         hardware.armMotor.set(Constants.Arm.SPEED)
         hardware.wristServo.position = wristPosition
     }
 }
 
 // Alternative for FTCLib MecanumDrive if we want to use our own
-data class DriveTrain(
-    val frontLeft: Motor,
-    val frontRight: Motor,
-    val backLeft: Motor,
-    val backRight: Motor,
-    val gamepad: GamepadEx,
-    val speed: Double = Constants.DriveTrain.DRIVE_SPEED,
-) {
-    private val motors = listOf(frontLeft, frontRight, backLeft, backRight)
-
-    init {
-        motors.forEach { it.setRunMode(Motor.RunMode.RawPower) }
-    }
-
-    fun drive() {
-        val (leftX, rightX, leftY) = Triple(-gamepad.leftX, -gamepad.leftY, -gamepad.rightX)
-
-        // Maximum value of the joystick inputs; keeps motors ∈ [-1, 1]
-        val denominator = (abs(leftX) + abs(leftY) + abs(rightX)).coerceAtLeast(1.0)
-
-        frontLeft.set((leftY + leftX + rightX) / denominator * speed)
-        frontRight.set((leftY - leftX - rightX) / denominator * speed)
-        backLeft.set((leftY - leftX + rightX) / denominator * speed)
-        backRight.set((leftY + leftX - rightX) / denominator * speed)
-    }
-}
+//data class DriveTrain(
+//    val frontLeft: Motor,
+//    val frontRight: Motor,
+//    val backLeft: Motor,
+//    val backRight: Motor,
+//    val gamepad: GamepadEx,
+//    val speed: Double = Constants.DriveTrain.DRIVE_SPEED,
+//) {
+//    private val motors = listOf(frontLeft, frontRight, backLeft, backRight)
+//
+//    init {
+//        motors.forEach { it.setRunMode(Motor.RunMode.RawPower) }
+//    }
+//
+//    fun drive() {
+//        val (leftX, rightX, leftY) = Triple(-gamepad.leftX, -gamepad.leftY, -gamepad.rightX)
+//
+//        // Maximum value of the joystick inputs; keeps motors ∈ [-1, 1]
+//        val denominator = (abs(leftX) + abs(leftY) + abs(rightX)).coerceAtLeast(1.0)
+//
+//        frontLeft.set((leftY + leftX + rightX) / denominator * speed)
+//        frontRight.set((leftY - leftX - rightX) / denominator * speed)
+//        backLeft.set((leftY - leftX + rightX) / denominator * speed)
+//        backRight.set((leftY + leftX - rightX) / denominator * speed)
+//    }
+//}
 
 class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     private val leftFrontMotor = Motor(hardwareMap, "flMotor", Motor.GoBILDA.RPM_435)
@@ -148,8 +151,7 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     )
 
     val mecanumDrive = MecanumDrive(leftFrontMotor, rightFrontMotor, leftBackMotor, rightBackMotor)
-    val driveTrain =
-        DriveTrain(leftFrontMotor, rightFrontMotor, leftBackMotor, rightBackMotor, gamepad)
+//    val driveTrain = DriveTrain(leftFrontMotor, rightFrontMotor, leftBackMotor, rightBackMotor, gamepad)
     val clawArm = ClawArm(this)
 //    val slide = Slide(this)
 
