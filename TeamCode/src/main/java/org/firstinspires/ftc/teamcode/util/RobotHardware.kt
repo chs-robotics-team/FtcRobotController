@@ -83,7 +83,8 @@ class ClawArm(val hardware: RobotHardware) {
         val angleModifier = when {
             hardware.gamepad.getButton(GamepadKeys.Button.LEFT_BUMPER) -> Constants.Arm.TICK_INCREMENT
             hardware.gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5 -> -Constants.Arm.TICK_INCREMENT
-            else -> 0
+            // This should hold the arm in place when triggers/bumpers are released
+            else -> return hardware.armMotor.set(0.0)
         }
 
         val encoderVal = hardware.armMotor.encoder.position
