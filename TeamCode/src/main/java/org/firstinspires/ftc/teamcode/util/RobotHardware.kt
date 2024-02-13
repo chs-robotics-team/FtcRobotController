@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 object Constants {
     object Arm {
         const val SPEED = 0.05
-        const val UP_POS = 90
+        const val UP_POS = -350
         const val TICK_INCREMENT = 5
 
         // The max position of the arm so it doesn't hit the back acrylic plate
@@ -69,7 +69,7 @@ object Constants {
 //}
 
 class ClawArm(val hardware: RobotHardware) {
-    private val initialEncoderVal = hardware.armMotor.encoder.position
+    private val initialEncoderVal = hardware.armMotor.currentPosition
 
     init {
         hardware.armMotor.setRunMode(Motor.RunMode.PositionControl)
@@ -87,15 +87,15 @@ class ClawArm(val hardware: RobotHardware) {
             else -> return hardware.armMotor.set(0.0)
         }
 
-        val encoderVal = hardware.armMotor.encoder.position
+        val encoderVal = hardware.armMotor.currentPosition
         // coerceAtLeast keeps minimum at MAX_POSITION; stops arm from going too far back
         val targetPosition = (encoderVal + angleModifier).coerceAtLeast(Constants.Arm.MAX_POSITION)
         val withInitial = initialEncoderVal + angleModifier
 
         // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
         val wristPosition = when {
-            hardware.armMotor.currentPosition < Constants.Arm.UP_POS -> Constants.Claw.WRIST_DOWN_POS
-            else -> Constants.Claw.WRIST_UP_POS
+            hardware.armMotor.currentPosition > Constants.Arm.UP_POS -> Constants.Claw.WRIST_UP_POS
+            else -> Constants.Claw.WRIST_DOWN_POS
         }
 
         telemetry.addData("Encoder Val", encoderVal)
