@@ -30,7 +30,7 @@ class OpMode : OpMode() {
         hardware.toggleB.readValue()
         telemetry.addData("B", hardware.toggleB.state)
         telemetry.addData("Bumper", gamepad.isDown(GamepadKeys.Button.RIGHT_BUMPER))
-        telemetry.addData("Encoder", hardware.armMotor.encoder.position)
+        telemetry.addData("Encoder", hardware.armMotor.currentPosition)
 
         hardware.mecanumDrive.driveRobotCentric(
             -gamepad.leftX * Constants.DriveTrain.DRIVE_SPEED,
