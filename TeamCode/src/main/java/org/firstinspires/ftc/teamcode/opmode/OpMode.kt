@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx
-import com.arcrobotics.ftclib.gamepad.GamepadKeys
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import org.firstinspires.ftc.teamcode.util.Constants
@@ -30,11 +29,9 @@ class OpMode : OpMode() {
 
     override fun loop() {
         hardware.toggleA.readValue()
-        telemetry.addData("A", hardware.toggleA.state)
+        logger.debug("A: ${hardware.toggleA.state}")
         hardware.toggleB.readValue()
-        telemetry.addData("B", hardware.toggleB.state)
-        telemetry.addData("Bumper", gamepad.isDown(GamepadKeys.Button.RIGHT_BUMPER))
-        telemetry.addData("Encoder", hardware.armMotor.currentPosition)
+        logger.debug("B: ${hardware.toggleB.state}")
 
         hardware.mecanumDrive.driveRobotCentric(
             -gamepad.leftX * Constants.DriveTrain.DRIVE_SPEED,
