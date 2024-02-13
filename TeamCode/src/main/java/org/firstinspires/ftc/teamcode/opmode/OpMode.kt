@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import org.firstinspires.ftc.teamcode.util.Constants
 import org.firstinspires.ftc.teamcode.util.RobotHardware
+import org.firstinspires.ftc.teamcode.util.TelemetryLogger
+
+lateinit var logger: TelemetryLogger
 
 @TeleOp(name = "OpMode")
 @Suppress("unused")
@@ -16,8 +19,9 @@ class OpMode : OpMode() {
     override fun init() {
         gamepad = GamepadEx(gamepad1)
         hardware = RobotHardware(hardwareMap, gamepad)
+        logger = TelemetryLogger(telemetry)
 
-        telemetry.addData("[BOT]", "Initialized Hardware & Gamepad")
+        logger.info("Initialized OpMode")
     }
 
     override fun start() {
@@ -38,7 +42,7 @@ class OpMode : OpMode() {
             -gamepad.rightX * Constants.DriveTrain.DRIVE_SPEED,
         )
 
-        hardware.clawArm.move(telemetry)
+        hardware.clawArm.move()
         gamepad.readButtons()
     }
 }

@@ -7,7 +7,7 @@ import com.arcrobotics.ftclib.gamepad.ToggleButtonReader
 import com.arcrobotics.ftclib.hardware.SimpleServo
 import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.opmode.logger
 
 object Constants {
     object Arm {
@@ -79,7 +79,7 @@ class ClawArm(val hardware: RobotHardware) {
         hardware.wristServo.position = Constants.Claw.WRIST_DOWN_POS
     }
 
-    fun move(telemetry: Telemetry) {
+    fun move() {
         val angleModifier = when {
             hardware.gamepad.getButton(GamepadKeys.Button.LEFT_BUMPER) -> Constants.Arm.TICK_INCREMENT
             hardware.gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5 -> -Constants.Arm.TICK_INCREMENT
@@ -98,9 +98,9 @@ class ClawArm(val hardware: RobotHardware) {
             else -> Constants.Claw.WRIST_DOWN_POS
         }
 
-        telemetry.addData("Encoder Val", encoderVal)
-        telemetry.addData("New Angle", targetPosition)
-        telemetry.addData("With Initial", withInitial)
+        logger.debug("Encoder Val: $encoderVal")
+        logger.debug("Target Position: $targetPosition")
+        logger.debug("With Initial $withInitial")
 
         hardware.armMotor.setTargetPosition(targetPosition)
         hardware.armMotor.set(Constants.Arm.SPEED)
