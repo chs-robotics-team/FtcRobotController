@@ -40,6 +40,7 @@ class OpMode : OpMode() {
         )
 
         hardware.clawArm.move()
+        hardware.slide.move()
         gamepad.readButtons()
     }
 }

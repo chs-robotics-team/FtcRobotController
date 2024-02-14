@@ -15,7 +15,7 @@ class TelemetryLogger(val telemetry: Telemetry) {
             TelemetryType.ERROR -> telemetry.addData("[ERROR]", message)
         }
 
-        telemetry.update()
+//        telemetry.update()
     }
 
     fun debug(message: String) = log(message, TelemetryType.DEBUG)
