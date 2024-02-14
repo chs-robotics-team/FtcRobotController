@@ -39,6 +39,10 @@ class OpMode : OpMode() {
             -gamepad.rightX * Constants.DriveTrain.DRIVE_SPEED,
         )
 
+//        hardware.toggleA.readValue()
+//        val clawPos = if (hardware.toggleA.state) Constants.Claw.OPEN_POS else Constants.Claw.CLOSE_POS
+//        hardware.clawServo.position = clawPos
+
         hardware.clawArm.move()
         hardware.slide.move()
         gamepad.readButtons()
