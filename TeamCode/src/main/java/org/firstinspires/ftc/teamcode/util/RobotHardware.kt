@@ -38,31 +38,35 @@ object Constants {
     }
 
     object Slide {
-        const val SPEED = 0.5
-        const val TICK_INCREMENT = 4
-        const val MAX_POSITION = 180
-        const val MIN_POSITION = 0
+        const val SPEED = 0.4
+        const val MAX_POSITION = 10500
     }
 }
 
 data class Slide(val hardware: RobotHardware) {
+    private val initialEncoderVal = hardware.leftSlide.currentPosition
+
     init {
-        //        leftSlide.setRunMode(Motor.RunMode.PositionControl)
+        // So positive numbers move the slide up instead of down
+        hardware.leftSlide.inverted = true
         hardware.leftSlide.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
+//        hardware.leftSlide.setRunMode(Motor.RunMode.PositionControl)
     }
 
     fun move() {
         val slidePos = hardware.leftSlide.currentPosition
+        val displacement = slidePos - initialEncoderVal
 
-        val leftPower =
-            if ((Constants.Slide.MIN_POSITION..Constants.Slide.MAX_POSITION).contains(slidePos)) when {
-                hardware.gamepad.getButton(GamepadKeys.Button.DPAD_UP) -> Constants.Slide.SPEED
-                hardware.gamepad.getButton(GamepadKeys.Button.DPAD_DOWN) -> -Constants.Slide.SPEED
-                else -> 0.0
-            } else 0.0
+        val leftPower = when {
+            displacement <= Constants.Slide.MAX_POSITION && hardware.gamepad.getButton(GamepadKeys.Button.DPAD_UP) -> Constants.Slide.SPEED
+            hardware.gamepad.getButton(GamepadKeys.Button.DPAD_DOWN) -> -Constants.Slide.SPEED
+            else -> 0.0
+        }
 
         logger.debug("Power: $leftPower")
         logger.debug("Slide Pos: $slidePos")
+        logger.debug("Initial Slide: $initialEncoderVal")
+        logger.debug("Displacement: ${slidePos - initialEncoderVal}")
 
         hardware.leftSlide.set(leftPower)
     }
