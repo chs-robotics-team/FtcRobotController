@@ -28,7 +28,7 @@ object Constants {
 
     object Claw {
         const val OPEN_POS = 20.0
-        const val CLOSE_POS = 40.0
+        const val CLOSE_POS = 90.0
 
         // Position when arm is placing pixel on the board
         const val WRIST_UP_POS = 90.0
@@ -45,7 +45,6 @@ object Constants {
     }
 }
 
-// TODO: finish this when we get slide motor connectors
 data class Slide(val hardware: RobotHardware) {
     private val left = hardware.leftSlide
     private val right = hardware.rightSlide
@@ -122,16 +121,10 @@ class ClawArm(val hardware: RobotHardware) {
             (encoderVal + angleModifier).coerceAtLeast(minRotation(initialEncoderVal))
 
         // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
-//        val wristPosition = when {
-//            hardware.armMotor.currentPosition > wristThreshold(initialEncoderVal) -> Constants.Claw.WRIST_UP_POS
-//            else -> Constants.Claw.WRIST_DOWN_POS
-//        }
-
         val currentWrist = hardware.wristServo.position
         val wristPosition = when {
-            hardware.gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5 -> 30
-            hardware.gamepad.getButton(GamepadKeys.Button.RIGHT_BUMPER) -> 0
-            else -> 0
+            gravityThreshold(initialEncoderVal).first > hardware.armMotor.currentPosition -> 15.0
+            else -> Constants.Claw.WRIST_DOWN_POS
         }
 
         val targetWrist = currentWrist + wristPosition
@@ -188,7 +181,7 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
 
     val armMotor = Motor(hardwareMap, "armMotor", Motor.GoBILDA.RPM_435)
     val clawServo = SimpleServo(
-        hardwareMap, "clawServo", Constants.Claw.OPEN_POS, Constants.Claw.CLOSE_POS
+        hardwareMap, "clawServo", Constants.Claw.OPEN_POS, Constants.Claw.WRIST_UP_POS
     )
     val wristServo = SimpleServo(
         hardwareMap, "pivotServo", Constants.Claw.WRIST_DOWN_POS, Constants.Claw.WRIST_UP_POS
