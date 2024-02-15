@@ -27,8 +27,8 @@ object Constants {
     }
 
     object Claw {
-        const val OPEN_POS = 20.0
-        const val CLOSE_POS = 90.0
+        const val OPEN_POS = 360.0
+        const val CLOSE_POS = 80.0
 
         // Position when arm is placing pixel on the board
         const val WRIST_UP_POS = 90.0
@@ -46,45 +46,25 @@ object Constants {
 }
 
 data class Slide(val hardware: RobotHardware) {
-    private val left = hardware.leftSlide
-    private val right = hardware.rightSlide
-    private val motors = listOf(left, right)
-
     init {
-        motors.forEach {
-            it.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
-        }
+        //        leftSlide.setRunMode(Motor.RunMode.PositionControl)
+        hardware.leftSlide.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
     }
 
     fun move() {
-        val avgSlidePos = (left.currentPosition + right.currentPosition) / 2
+        val slidePos = hardware.leftSlide.currentPosition
 
         val leftPower =
-            if ((Constants.Slide.MIN_POSITION..Constants.Slide.MAX_POSITION).contains(avgSlidePos)) when {
+            if ((Constants.Slide.MIN_POSITION..Constants.Slide.MAX_POSITION).contains(slidePos)) when {
                 hardware.gamepad.getButton(GamepadKeys.Button.DPAD_UP) -> Constants.Slide.SPEED
                 hardware.gamepad.getButton(GamepadKeys.Button.DPAD_DOWN) -> -Constants.Slide.SPEED
                 else -> 0.0
             } else 0.0
 
-        val rightPower =
-            if ((Constants.Slide.MIN_POSITION..Constants.Slide.MAX_POSITION).contains(avgSlidePos)) when {
-                hardware.gamepad.getButton(GamepadKeys.Button.DPAD_RIGHT) -> Constants.Slide.SPEED
-                hardware.gamepad.getButton(GamepadKeys.Button.DPAD_LEFT) -> -Constants.Slide.SPEED
-                else -> 0.0
-            } else 0.0
-
-        logger.debug("Average Slide Pos: $avgSlidePos")
-        logger.debug(
-            "In Range: ${
-                (Constants.Slide.MIN_POSITION..Constants.Slide.MAX_POSITION).contains(
-                    avgSlidePos
-                )
-            }"
-        )
-        logger.debug("Power: ${leftPower to rightPower}")
+        logger.debug("Power: $leftPower")
+        logger.debug("Slide Pos: $slidePos")
 
         hardware.leftSlide.set(leftPower)
-        hardware.rightSlide.set(rightPower)
     }
 }
 
@@ -101,7 +81,8 @@ class ClawArm(val hardware: RobotHardware) {
 
     private fun minRotation(initial: Int) = initial + Constants.Arm.MAX_POSITION
     private fun wristThreshold(initial: Int) = initial + Constants.Arm.UP_POS
-    private fun gravityThreshold(initial: Int) = Constants.Arm.GRAVITY_THRESHOLD.first + initial..Constants.Arm.GRAVITY_THRESHOLD.last + initial
+    private fun gravityThreshold(initial: Int) =
+        Constants.Arm.GRAVITY_THRESHOLD.first + initial..Constants.Arm.GRAVITY_THRESHOLD.last + initial
 
     fun move() {
         val encoderVal = hardware.armMotor.currentPosition
@@ -130,7 +111,8 @@ class ClawArm(val hardware: RobotHardware) {
         val targetWrist = currentWrist + wristPosition
 
         hardware.toggleA.readValue()
-        val clawAngle = if (hardware.toggleA.state) Constants.Claw.OPEN_POS else Constants.Claw.CLOSE_POS
+        val clawAngle =
+            if (hardware.toggleA.state) Constants.Claw.OPEN_POS else Constants.Claw.CLOSE_POS
         hardware.clawServo.turnToAngle(clawAngle)
 
         logger.debug("Encoder Val: $encoderVal")
@@ -180,9 +162,7 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     private val backRightMotor = Motor(hardwareMap, "brMotor", Motor.GoBILDA.RPM_435)
 
     val armMotor = Motor(hardwareMap, "armMotor", Motor.GoBILDA.RPM_435)
-    val clawServo = SimpleServo(
-        hardwareMap, "clawServo", Constants.Claw.OPEN_POS, Constants.Claw.WRIST_UP_POS
-    )
+    val clawServo = SimpleServo(hardwareMap, "clawServo", 0.0, 360.0)
     val wristServo = SimpleServo(
         hardwareMap, "pivotServo", Constants.Claw.WRIST_DOWN_POS, Constants.Claw.WRIST_UP_POS
     )
@@ -197,11 +177,7 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     val toggleB = ToggleButtonReader(gamepad, GamepadKeys.Button.B)
 
     val leftSlide = Motor(hardwareMap, "lSlide", Motor.GoBILDA.RPM_435)
-    val rightSlide = Motor(hardwareMap, "rSlide", Motor.GoBILDA.RPM_435)
-    val slide = Slide(this)
 
-    init {
-        armMotor.setRunMode(Motor.RunMode.PositionControl)
-        armMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
-    }
+    //    val rightSlide = Motor(hardwareMap, "rSlide", Motor.GoBILDA.RPM_435)
+    val slide = Slide(this)
 }
