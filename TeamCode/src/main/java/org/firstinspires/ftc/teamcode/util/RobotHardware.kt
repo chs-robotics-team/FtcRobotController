@@ -9,10 +9,11 @@ import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.teamcode.opmode.logger
 
+fun IntRange.shift(n: Int) = first + n..last + n
+
 object Constants {
     object Arm {
         const val SPEED = 0.15
-        const val UP_POS = -200
         const val TICK_INCREMENT = 4
 
         // The max position of the arm so it doesn't hit the back acrylic plate
@@ -20,6 +21,7 @@ object Constants {
 
         // When to stop trying to counteract gravity (should be roughly near the top of the turn)
         val GRAVITY_THRESHOLD = -180..-100
+        val WRIST_THRESHOLD = MAX_POSITION..-200
     }
 
     object DriveTrain {
@@ -84,9 +86,8 @@ class ClawArm(val hardware: RobotHardware) {
     }
 
     private fun minRotation(initial: Int) = initial + Constants.Arm.MAX_POSITION
-    private fun wristThreshold(initial: Int) = initial + Constants.Arm.UP_POS
-    private fun gravityThreshold(initial: Int) =
-        Constants.Arm.GRAVITY_THRESHOLD.first + initial..Constants.Arm.GRAVITY_THRESHOLD.last + initial
+    private fun wristThreshold(initial: Int) = Constants.Arm.WRIST_THRESHOLD.shift(initial)
+    private fun gravityThreshold(initial: Int) = Constants.Arm.GRAVITY_THRESHOLD.shift(initial)
 
     fun move() {
         val encoderVal = hardware.armMotor.currentPosition
@@ -108,7 +109,7 @@ class ClawArm(val hardware: RobotHardware) {
         // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
         val currentWrist = hardware.wristServo.position
         val wristPosition = when {
-            gravityThreshold(initialEncoderVal).first > hardware.armMotor.currentPosition -> 15.0
+            wristThreshold(initialEncoderVal).first > hardware.armMotor.currentPosition -> 15.0
             else -> Constants.Claw.WRIST_DOWN_POS
         }
 
