@@ -135,6 +135,9 @@ class DriveTrain(private val hardware: RobotHardware) : MecanumDrive(
         val speedModifier = speed
             ?: if (hardware.toggleFast.check()) Constants.DriveTrain.HIGH_SPEED else Constants.DriveTrain.LOW_SPEED
 
+        val driveSpeed = if (speedModifier == Constants.DriveTrain.HIGH_SPEED) "High" else "Low"
+        logger.debug("Drive Speed: $driveSpeed")
+
         driveRobotCentric(
             -hardware.gamepad.leftX * speedModifier,
             -hardware.gamepad.leftY * speedModifier,
