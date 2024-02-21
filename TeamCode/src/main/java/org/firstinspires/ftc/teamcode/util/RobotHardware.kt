@@ -11,10 +11,7 @@ import org.firstinspires.ftc.teamcode.opmode.logger
 
 fun IntRange.shift(n: Int) = first + n..last + n
 
-fun ToggleButtonReader.check(): Boolean {
-    this.readValue()
-    return this.state
-}
+fun ToggleButtonReader.check() = this.readValue().let { this.state }
 
 object Constants {
     object Arm {
