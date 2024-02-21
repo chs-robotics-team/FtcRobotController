@@ -19,7 +19,6 @@ object Constants {
         const val DOWN_SPEED = 0.4
 
         // The max position of the arm so it doesn't hit the back acrylic plate
-//        private const val MAX_POSITION = -380
         const val MAX_DISPLACEMENT = 400
 
         // When to stop trying to counteract gravity (should be roughly near the top of the turn)
