@@ -49,6 +49,11 @@ object Constants {
     object Slide {
         const val SPEED = 0.8
     }
+
+    object Drone {
+        const val LAUNCHED_POS = 180.0
+        const val RETRACTED_POS = 0.0
+    }
 }
 
 data class Slide(val hardware: RobotHardware) {
@@ -113,8 +118,12 @@ class ClawArm(val hardware: RobotHardware) {
         val wristAngle =
             if (hardware.toggleWrist.check()) Constants.Claw.WRIST_UP_POS else Constants.Claw.WRIST_DOWN_POS
 
+        val droneAngle =
+            if (hardware.toggleDrone.check()) Constants.Drone.LAUNCHED_POS else Constants.Drone.RETRACTED_POS
+
         hardware.clawServo.turnToAngle(clawAngle)
         hardware.wristServo.turnToAngle(wristAngle)
+        hardware.droneServo.turnToAngle(droneAngle)
 
         logger.debug("Angle: $wristAngle")
         logger.debug("Encoder Val: $encoderVal")
@@ -157,10 +166,12 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     val armMotor = Motor(hardwareMap, "armMotor", Motor.GoBILDA.RPM_435)
     val clawServo = SimpleServo(hardwareMap, "clawServo", 0.0, 360.0)
     val wristServo = SimpleServo(hardwareMap, "pivotServo", 0.0, 420.0)
+    val droneServo = SimpleServo(hardwareMap, "droneServo", 0.0, 360.0)
     val clawArm = ClawArm(this)
 
     val toggleClaw = ToggleButtonReader(gamepad, GamepadKeys.Button.A)
     val toggleWrist = ToggleButtonReader(gamepad, GamepadKeys.Button.B)
+    val toggleDrone = ToggleButtonReader(gamepad, GamepadKeys.Button.Y)
     val toggleFast = ToggleButtonReader(gamepad, GamepadKeys.Button.RIGHT_STICK_BUTTON)
 
     val leftSlide = Motor(hardwareMap, "lSlide", Motor.GoBILDA.RPM_435)
