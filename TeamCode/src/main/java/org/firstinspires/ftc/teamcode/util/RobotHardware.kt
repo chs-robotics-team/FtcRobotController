@@ -18,15 +18,16 @@ fun ToggleButtonReader.check(): Boolean {
 
 object Constants {
     object Arm {
-        const val SPEED = 0.2
+        const val UP_SPEED = 0.6
+        const val DOWN_SPEED = 0.4
 
         // The max position of the arm so it doesn't hit the back acrylic plate
-        const val MAX_POSITION = -380
+//        private const val MAX_POSITION = -380
         const val MAX_DISPLACEMENT = 400
 
         // When to stop trying to counteract gravity (should be roughly near the top of the turn)
         val GRAVITY_THRESHOLD = -180..-100
-        val WRIST_THRESHOLD = MAX_POSITION..-180
+//        val WRIST_THRESHOLD = -500..-250
     }
 
     object DriveTrain {
@@ -42,7 +43,7 @@ object Constants {
         const val WRIST_UP_POS = 180.0
 
         // Position when arm is on the ground
-        const val WRIST_DOWN_POS = 0.0
+        const val WRIST_DOWN_POS = 30.0
     }
 
     object Slide {
@@ -79,38 +80,38 @@ class ClawArm(val hardware: RobotHardware) {
     }
 
     private fun gravityThreshold(initial: Int) = Constants.Arm.GRAVITY_THRESHOLD.shift(initial)
-    private fun wristThreshold(initial: Int) = Constants.Arm.WRIST_THRESHOLD.shift(initial)
+//    private fun wristThreshold(initial: Int) = Constants.Arm.WRIST_THRESHOLD.shift(initial)
 
     fun move() {
         val encoderVal = hardware.armMotor.currentPosition
         val displacement = initialEncoderVal - encoderVal
 
         val gravityRange = gravityThreshold(initialEncoderVal)
-        val wristRange = wristThreshold(initialEncoderVal)
+//        val wristRange = wristThreshold(initialEncoderVal)
 
         val gravityAdjustment = if (gravityRange.contains(encoderVal)) -0.25 else 0.0
 
         val armSpeed = when {
-            hardware.gamepad.getButton(GamepadKeys.Button.RIGHT_BUMPER) -> Constants.Arm.SPEED
+            displacement <= 100 && !hardware.gamepad.getButton(GamepadKeys.Button.RIGHT_BUMPER) -> 0.0
+            hardware.gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5 -> Constants.Arm.DOWN_SPEED
             displacement >= Constants.Arm.MAX_DISPLACEMENT -> 0.25
-            hardware.gamepad.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5 -> -Constants.Arm.SPEED
+            hardware.gamepad.getButton(GamepadKeys.Button.RIGHT_BUMPER) -> -Constants.Arm.UP_SPEED
             else -> gravityAdjustment
         }
 
-        // TODO: Wrist position based on encoder of arm (if arm is up, wrist is up)
-//        val wristPosition = when {
+//        val wristAngle = when {
 //            wristThreshold(initialEncoderVal).contains(hardware.armMotor.currentPosition) -> Constants.Claw.WRIST_UP_POS
 //            else -> Constants.Claw.WRIST_DOWN_POS
 //        }
 
         logger.debug("Arm Position: ${hardware.armMotor.currentPosition} | $displacement")
-        logger.debug("Wrist Threshold: $wristRange | ${wristRange.contains(hardware.armMotor.currentPosition)}")
+//        logger.debug("Wrist Threshold: $wristRange | ${wristRange.contains(hardware.armMotor.currentPosition)}")
 
         val clawAngle =
             if (hardware.toggleClaw.check()) Constants.Claw.OPEN_POS else Constants.Claw.CLOSE_POS
 
         val wristAngle =
-            if (hardware.toggleWrist.check()) Constants.Claw.WRIST_DOWN_POS else Constants.Claw.WRIST_UP_POS
+            if (hardware.toggleWrist.check()) Constants.Claw.WRIST_UP_POS else Constants.Claw.WRIST_DOWN_POS
 
         hardware.clawServo.turnToAngle(clawAngle)
         hardware.wristServo.turnToAngle(wristAngle)
