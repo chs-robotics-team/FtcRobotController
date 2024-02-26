@@ -48,7 +48,7 @@ object Constants {
 
     object Drone {
         const val LAUNCHED_POS = 180.0
-        const val RETRACTED_POS = 0.0
+        const val RETRACTED_POS = 30.0
     }
 }
 
@@ -78,6 +78,7 @@ class ClawArm(val hardware: RobotHardware) {
         hardware.armMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
         hardware.wristServo.position = Constants.Claw.WRIST_DOWN_POS
         hardware.wristServo.inverted = true
+        hardware.droneServo.inverted = true
     }
 
     private fun gravityThreshold(initial: Int) = Constants.Arm.GRAVITY_THRESHOLD.shift(initial)
@@ -115,7 +116,7 @@ class ClawArm(val hardware: RobotHardware) {
             if (hardware.toggleWrist.check()) Constants.Claw.WRIST_UP_POS else Constants.Claw.WRIST_DOWN_POS
 
         val droneAngle =
-            if (hardware.toggleDrone.check()) Constants.Drone.LAUNCHED_POS else Constants.Drone.RETRACTED_POS
+            if (hardware.gamepad.isDown(GamepadKeys.Button.Y)) Constants.Drone.LAUNCHED_POS else Constants.Drone.RETRACTED_POS
 
         hardware.clawServo.turnToAngle(clawAngle)
         hardware.wristServo.turnToAngle(wristAngle)
@@ -124,8 +125,9 @@ class ClawArm(val hardware: RobotHardware) {
         logger.debug("Angle: $wristAngle")
         logger.debug("Encoder Val: $encoderVal")
         logger.debug("Initial: $initialEncoderVal")
-        logger.debug("Wrist Position: ${hardware.wristServo.angle to wristAngle} | ${hardware.wristServo.angleRange}")
+        logger.debug("Wrist Position: ${hardware.wristServo.angle to wristAngle}")
         logger.debug("Claw Position: ${hardware.clawServo.angle to clawAngle}")
+        logger.debug("Drone Position: ${hardware.droneServo.angle to droneAngle}")
 
         hardware.armMotor.set(armSpeed)
     }
@@ -167,7 +169,6 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
 
     val toggleClaw = ToggleButtonReader(gamepad, GamepadKeys.Button.A)
     val toggleWrist = ToggleButtonReader(gamepad, GamepadKeys.Button.B)
-    val toggleDrone = ToggleButtonReader(gamepad, GamepadKeys.Button.Y)
     val toggleFast = ToggleButtonReader(gamepad, GamepadKeys.Button.RIGHT_STICK_BUTTON)
 
     val leftSlide = Motor(hardwareMap, "lSlide", Motor.GoBILDA.RPM_435)
