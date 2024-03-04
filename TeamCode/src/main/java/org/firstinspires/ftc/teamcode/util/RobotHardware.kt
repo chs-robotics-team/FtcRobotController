@@ -47,8 +47,8 @@ object Constants {
     }
 
     object Drone {
-        const val LAUNCHED_POS = 180.0
-        const val RETRACTED_POS = 30.0
+        const val LAUNCHED_POS = 30.0
+        const val RETRACTED_POS = 180.0
     }
 }
 
@@ -60,7 +60,7 @@ data class Slide(val hardware: RobotHardware) {
     }
 
     fun move() {
-        val slidePower = when {
+        val slidePower = if (hardware.toggleHang.check()) -Constants.Slide.SPEED else when {
             hardware.gamepad.getButton(GamepadKeys.Button.LEFT_BUMPER) -> Constants.Slide.SPEED
             hardware.gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5 -> -Constants.Slide.SPEED
             else -> 0.0
@@ -78,7 +78,7 @@ class ClawArm(val hardware: RobotHardware) {
         hardware.armMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
         hardware.wristServo.position = Constants.Claw.WRIST_DOWN_POS
         hardware.wristServo.inverted = true
-        hardware.droneServo.inverted = true
+//        hardware.droneServo.inverted = true
     }
 
     private fun gravityThreshold(initial: Int) = Constants.Arm.GRAVITY_THRESHOLD.shift(initial)
@@ -170,6 +170,7 @@ class RobotHardware(val hardwareMap: HardwareMap, val gamepad: GamepadEx) {
     val toggleClaw = ToggleButtonReader(gamepad, GamepadKeys.Button.A)
     val toggleWrist = ToggleButtonReader(gamepad, GamepadKeys.Button.B)
     val toggleFast = ToggleButtonReader(gamepad, GamepadKeys.Button.RIGHT_STICK_BUTTON)
+    val toggleHang = ToggleButtonReader(gamepad, GamepadKeys.Button.BACK)
 
     val leftSlide = Motor(hardwareMap, "lSlide", Motor.GoBILDA.RPM_435)
     val slide = Slide(this)
